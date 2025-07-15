@@ -41,3 +41,32 @@ export async function GET(req) {
     return NextResponse.json({ success: false, error: "An unexpected error occurred." }, { status: 500 })
   }
 } 
+
+export async function POST(req) {
+  try {
+    const user = await verifyToken(req)
+    if (!user || user.role !== "teacher") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { title, description } = await req.json()
+
+    if (!title || !description) {
+      return NextResponse.json({ success: false, error: "Title and description are required" }, { status: 400 })
+    }
+
+    const result = await db.query(
+      "INSERT INTO courses (title, description) VALUES ($1, $2) RETURNING *",
+      [title, description]
+    )
+    const newCourse = result.rows[0]
+
+    return NextResponse.json(newCourse, { status: 201 })
+  } catch (error) {
+    console.error("POST /api/courses error:", error)
+    if (error.message === "Unauthorized") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+    return NextResponse.json({ success: false, error: "An unexpected error occurred." }, { status: 500 })
+  }
+} 

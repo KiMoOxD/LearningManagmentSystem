@@ -63,32 +63,30 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const register = async (name, email, password, role) => {
-    setLoading(true)
-    setError(null)
+  const register = async ({ name, email, password, role }) => {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, role }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to register")
+        // The API returns an `error` field on failure
+        throw new Error(data.error || "Failed to register");
       }
-
-      setUser(data.user)
-      setError(null)
-      router.push(data.user.role === "teacher" ? "/dashboard/teacher" : "/dashboard/student")
+      
+      // The register function will no longer log the user in.
+      // It just creates the account. The user will be redirected
+      // to the login page by the form itself.
+      
     } catch (err) {
-      setError(err.message)
-      throw err
-    } finally {
-      setLoading(false)
+      // Re-throw the error to be caught by the form handler
+      throw err;
     }
-  }
+  };
 
   const logout = async () => {
     try {

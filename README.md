@@ -18,6 +18,221 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Project Structure
+
+The following is the structure of the LMS Frontend project:
+
+```
+lms-frontend/
+  app/
+    (main)/
+      dashboard/
+        student/
+          courses/
+            [id]/
+              page.js
+              quizzes/
+                page.js
+          grades/
+            page.js
+          page.js
+          quizzes/
+            [id]/
+              page.js
+              results/
+                page.js
+            page.js
+        teacher/
+          courses/
+            [id]/
+              enrollments/
+                page.js
+              grades/
+                page.js
+              page.js
+              quizzes/
+                page.js
+          page.js
+          quizzes/
+            [id]/
+              page.js
+              results/
+                page.js
+              submissions/
+                page.js
+            page.js
+          students/
+            page.js
+          submissions/
+            [submissionId]/
+              page.js
+      layout.js
+    api/
+      auth/
+        login/
+          route.js
+        logout/
+          route.js
+        me/
+          route.js
+        register/
+          route.js
+      courses/
+        [id]/
+          lectures/
+            route.js
+          route.js
+        route.js
+      enrollments/
+        [id]/
+          route.js
+        route.js
+      lectures/
+        [id]/
+          progress/
+            route.js
+          route.js
+        route.js
+        upload/
+          route.js
+      quizzes/
+        [id]/
+          my-results/
+            route.js
+          questions/
+            [questionId]/
+              route.js
+            route.js
+          route.js
+          submissions/
+            route.js
+          take/
+            route.js
+        mock-data.js
+        route.js
+        submissions/
+          [submissionId]/
+            results/
+              route.js
+            submit/
+              route.js
+      submissions/
+        [id]/
+      users/
+        [id]/
+          route.js
+        route.js
+    fonts/
+      InterVariable-Italic.woff2
+      InterVariable.woff2
+    globals.css
+    layout.js
+    login/
+      page.js
+    page.js
+    register/
+      page.js
+  components/
+    CourseCard.js
+    CreateEditStudentModal.js
+    Modal.js
+    modals/
+      AddGradeModal.js
+      CreateEditCourseModal.js
+      CreateEditLectureModal.js
+      CreateEditQuizModal.js
+      EnrollmentModal.js
+    QuestionBuilder.js
+    QuestionForm.js
+    QuizList.js
+    Sidebar.js
+    StudentList.js
+    theme-provider.tsx
+    ui/
+      accordion.js
+      alert-dialog.js
+      alert.js
+      aspect-ratio.js
+      avatar.js
+      badge.tsx
+      breadcrumb.tsx
+      button.js
+      calendar.js
+      card.tsx
+      carousel.tsx
+      chart.tsx
+      checkbox.tsx
+      collapsible.tsx
+      command.tsx
+      context-menu.tsx
+      dialog.js
+      drawer.tsx
+      dropdown-menu.tsx
+      form.js
+      hover-card.tsx
+      input-otp.tsx
+      input.js
+      label.js
+      menubar.tsx
+      navigation-menu.tsx
+      pagination.tsx
+      popover.js
+      progress.tsx
+      radio-group.tsx
+      resizable.tsx
+      scroll-area.tsx
+      select.js
+      separator.tsx
+      sheet.tsx
+      sidebar.tsx
+      skeleton.tsx
+      slider.tsx
+      sonner.js
+      switch.js
+      table.tsx
+      tabs.tsx
+      textarea.js
+      toast.tsx
+      toaster.tsx
+      toggle-group.tsx
+      toggle.tsx
+      tooltip.tsx
+      use-mobile.tsx
+      use-toast.ts
+  components.json
+  context/
+    AuthContext.js
+  hooks/
+    use-media-query.tsx
+    use-mobile.tsx
+    use-toast.ts
+  lib/
+    auth.js
+    db.js
+    utils.ts
+  middleware.js
+  next.config.mjs
+  package-lock.json
+  package.json
+  pnpm-lock.yaml
+  postcss.config.mjs
+  public/
+    placeholder-logo.png
+    placeholder-logo.svg
+    placeholder-user.jpg
+    placeholder.jpg
+    placeholder.svg
+    uploads/
+  README.md
+  scripts/
+    create-tables.js
+  styles/
+    custom.css
+    globals.css
+  tailwind.config.js
+  tsconfig.json
+```
+
 ## Database Setup
 
 This project uses PostgreSQL for the database.
@@ -100,6 +315,75 @@ CREATE TABLE lecture_progress (
   student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   completed_at TIMESTAMP,
   UNIQUE(lecture_id, student_id)
+);
+```
+
+#### Quiz System Schema
+
+##### Quizzes Table
+
+```sql
+CREATE TABLE quizzes (
+  id SERIAL PRIMARY KEY,
+  course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  time_limit INTEGER DEFAULT 30, -- Time limit in minutes
+  due_date TIMESTAMP,
+  is_published BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+##### Questions Table
+
+```sql
+CREATE TABLE questions (
+  id SERIAL PRIMARY KEY,
+  quiz_id INTEGER NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  question_text TEXT NOT NULL,
+  question_type VARCHAR(50) NOT NULL CHECK (question_type IN ('multiple_choice', 'true_false', 'short_answer')),
+  image_url VARCHAR(255),
+  points INTEGER DEFAULT 10,
+  "order" INTEGER
+);
+```
+
+##### Question Options Table
+
+```sql
+CREATE TABLE question_options (
+  id SERIAL PRIMARY KEY,
+  question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  option_text TEXT NOT NULL,
+  is_correct BOOLEAN DEFAULT FALSE
+);
+```
+
+##### Quiz Submissions Table
+
+```sql
+CREATE TABLE quiz_submissions (
+  id SERIAL PRIMARY KEY,
+  quiz_id INTEGER NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  submitted_at TIMESTAMP,
+  score INTEGER,
+  UNIQUE(quiz_id, student_id)
+);
+```
+
+##### Student Answers Table
+
+```sql
+CREATE TABLE student_answers (
+  id SERIAL PRIMARY KEY,
+  submission_id INTEGER NOT NULL REFERENCES quiz_submissions(id) ON DELETE CASCADE,
+  question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  answer_text TEXT, -- For short answer
+  selected_option_id INTEGER REFERENCES question_options(id) ON DELETE CASCADE, -- For multiple choice/true_false
+  is_correct BOOLEAN
 );
 ```
 

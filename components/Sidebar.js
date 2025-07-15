@@ -75,6 +75,7 @@ export default function PremiumSidebar() {
   
   const studentNavItems = [
     { name: "My Courses", href: "/dashboard/student", icon: BookOpen },
+    { name: "My Quizzes", href: "/dashboard/student/quizzes", icon: FileQuestion },
     { name: "My Grades", href: "/dashboard/student/grades", icon: Award },
   ];
 
@@ -162,21 +163,21 @@ export default function PremiumSidebar() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="fixed inset-0 bg-black/50 z-40"
+                className="fixed inset-0 bg-black/50 z-30"
               />
               <motion.aside
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed top-0 left-0 h-full w-64 z-50"
+                className="fixed top-0 left-0 h-full w-64 z-40"
               >
                 <SidebarContent />
                  <Button 
                     variant="ghost" 
                     size="icon" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="absolute top-4 right-[-48px] z-50 bg-card/50 backdrop-blur-lg"
+                    className="absolute top-4 right-[-48px] z-40 bg-card/50 backdrop-blur-lg"
                   >
                     <X className="h-6 w-6" />
                   </Button>

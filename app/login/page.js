@@ -56,14 +56,14 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // 3. Just await the login. The useEffect will handle the redirect.
       await login(formData.email, formData.password)
+      // The redirect is handled by the useEffect, so we don't need to do anything here.
+      // We also don't set loading to false here, because the component will unmount.
     } catch (err) {
       setError(err.message)
-      setLoading(false) // Stop loading on error
+      // Only if there is an error do we need to manually stop the loading state.
+      setLoading(false) 
     }
-    // No need for a finally block to setLoading(false) because 
-    // the component will unmount on successful login anyway.
   }
 
   const handleChange = (e) => {
