@@ -1,118 +1,146 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function QuizResultsPage() {
-    const [results, setResults] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    const router = useRouter();
-    const params = useParams();
-    const { id: quizId } = params;
+  const router = useRouter();
+  const params = useParams();
+  const { id: quizId } = params;
 
-    useEffect(() => {
-        if (!quizId) return;
+  useEffect(() => {
+    if (!quizId) return;
 
-        const fetchResults = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`/api/quizzes/${quizId}/my-results`); 
-                if (!response.ok) {
-                    throw new Error('Failed to load quiz results.');
-                }
-                const data = await response.json();
-                setResults(data);
-            } catch (err) {
-                setError(err.message);
-                toast.error(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchResults();
-    }, [quizId]);
+    const fetchResults = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/quizzes/${quizId}/my-results`);
+        if (!res.ok) throw new Error("Failed to load quiz results.");
+        setResults(await res.json());
+      } catch (err) {
+        setError(err.message);
+        toast.error(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
+  }, [quizId]);
 
-    const getOptionText = (options, optionId) => {
-        if (!options || !optionId) return 'No answer';
-        return options.find(o => o.id === optionId)?.option_text || 'Invalid option';
-    }
+  const getOptionText = (options, optionId) =>
+    options?.find((o) => o.id === optionId)?.option_text || "No answer";
 
-    if (loading) return <div className="container mx-auto py-10">Loading results...</div>;
-    if (error) return <div className="container mx-auto py-10 text-red-500">{error}</div>;
-    if (!results) return null;
-
+  if (loading)
     return (
-        <div className="container mx-auto py-10">
-            <Button variant="ghost" onClick={() => router.push('/dashboard/student/quizzes')} className="mb-4">
-                &larr; Back to Quizzes
-            </Button>
-            <Card className="mb-6">
-                <CardHeader>
-                    <CardTitle>Results for: {results.quizTitle}</CardTitle>
-                    <CardDescription>
-                        Submitted on {new Date(results.submittedAt).toLocaleString()}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-4xl font-bold">
-                        Your Score: {results.score} / {results.totalPossibleScore}
-                    </p>
-                    {results.totalPossibleScore > 0 && (
-                        <p className="text-2xl text-muted-foreground mt-2">
-                           ({((results.score / results.totalPossibleScore) * 100).toFixed(0)}%)
-                        </p>
-                    )}
-                </CardContent>
-            </Card>
-
-            <h2 className="text-2xl font-semibold mt-8 mb-4">Review Your Answers</h2>
-            <div className="space-y-4">
-                {results.questions.map((q, index) => (
-                    <Card key={q.id}>
-                        <CardHeader className={cn(q.is_correct ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30')}>
-                            <div className="flex justify-between items-center">
-                                <p className="font-semibold">{index + 1}. {q.question_text}</p>
-                                <span className={cn('font-bold', q.is_correct ? 'text-green-600' : 'text-red-500')}>
-                                    {q.points} {q.points === 1 ? 'point' : 'points'}
-                                </span>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-4">
-                            <div className="mt-2 text-sm space-y-2">
-                               <div className="flex items-center">
-                                    {q.is_correct 
-                                        ? <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" /> 
-                                        : <XCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />}
-                                   <p>Your answer: 
-                                        <span className="font-semibold">
-                                            {' '}{q.question_type === 'short_answer' ? (q.answer_text || 'No answer') : getOptionText(q.options, q.selected_option_id)}
-                                        </span>
-                                   </p>
-                               </div>
-                               {!q.is_correct && (
-                                   <div className="flex items-center">
-                                        <CheckCircle2 className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
-                                       <p>Correct answer: 
-                                           <span className="font-semibold text-green-700">
-                                               {' '}{q.question_type === 'short_answer' 
-                                                    ? q.options.find(opt => opt.is_correct)?.option_text
-                                                    : getOptionText(q.options, q.options.find(opt => opt.is_correct)?.id)}
-                                           </span>
-                                       </p>
-                                   </div>
-                               )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-2 w-32 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse"></div>
+      </div>
     );
-} 
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
+  if (!results) return null;
+
+  const scorePercent = ((results.score / results.totalPossibleScore) * 100).toFixed(0);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4 sm:p-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Back button */}
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/dashboard/student/quizzes")}
+          className="mb-6 rounded-full"
+        >
+          &larr; Back to Quizzes
+        </Button>
+
+        {/* Hero score card */}
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl mb-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-90"></div>
+          <div className="relative z-10 p-8 text-white text-center">
+            <h1 className="text-3xl font-bold mb-1">{results.quizTitle}</h1>
+            <p className="text-sm opacity-80 mb-4">
+              Submitted on {new Date(results.submittedAt).toLocaleString()}
+            </p>
+            <p className="text-6xl font-black">{results.score} / {results.totalPossibleScore}</p>
+            <p className="text-2xl font-light mt-2">{scorePercent}%</p>
+          </div>
+        </div>
+
+        {/* Review section */}
+        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+          Review Your Answers
+        </h2>
+
+        <div className="space-y-6">
+          {results.questions.map((q, idx) => {
+            const isCorrect = q.is_correct;
+            const userText =
+              q.question_type === "short_answer"
+                ? q.answer_text || "No answer"
+                : getOptionText(q.options, q.selected_option_id);
+            const correctText =
+              q.question_type === "short_answer"
+                ? q.options.find((o) => o.is_correct)?.option_text
+                : getOptionText(q.options, q.options.find((o) => o.is_correct)?.id);
+
+            return (
+              <div
+                key={q.id}
+                className={cn(
+                  "rounded-2xl backdrop-blur-md shadow-lg ring-1",
+                  isCorrect
+                    ? "bg-green-100/60 dark:bg-green-900/30 ring-green-300 dark:ring-green-700"
+                    : "bg-red-100/60 dark:bg-red-900/30 ring-red-300 dark:ring-red-700"
+                )}
+              >
+                <div className="p-5">
+                  <div className="flex items-start justify-between">
+                    <p className="font-semibold text-lg text-slate-800 dark:text-slate-100">
+                      {idx + 1}. {q.question_text}
+                    </p>
+                    <span className="text-sm font-bold">{q.points} pt{q.points !== 1 && "s"}</span>
+                  </div>
+
+                  <div className="mt-3 space-y-2 text-sm">
+                    <div className="flex items-center">
+                      {isCorrect ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600 mr-2" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-red-600 mr-2" />
+                      )}
+                      <span>
+                        Your answer: <span className="font-semibold">{userText}</span>
+                      </span>
+                    </div>
+
+                    {!isCorrect && (
+                      <div className="flex items-center">
+                        <CheckCircle2 className="h-5 w-5 text-green-600 mr-2" />
+                        <span>
+                          Correct answer: <span className="font-semibold">{correctText}</span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
