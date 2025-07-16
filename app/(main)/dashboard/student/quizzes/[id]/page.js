@@ -163,8 +163,8 @@ export default function QuizTakingPage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center">
             <div>
-              <CardTitle>{quiz.title}</CardTitle>
-              <CardDescription>Question {currentQuestionIndex + 1} of {quiz.questions.length}</CardDescription>
+                    <CardTitle>{quiz.title}</CardTitle>
+                    <CardDescription>Question {currentQuestionIndex + 1} of {quiz.questions.length}</CardDescription>
             </div>
             {quizEndTime && <Timer expiryTimestamp={quizEndTime} onTimeUp={handleTimeUp} />}
           </CardHeader>
